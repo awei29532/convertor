@@ -26,12 +26,13 @@ inquirer.prompt([
 });
 
 async function jsonToCsv() {
-    let csvArray = [];
     files = files.filter(file => file.indexOf('.json') != -1);
     if (!files.length) {
         console.log('There is no json file.');
         return;
     }
+    const jsonToCsv = require('./jsonToCsv');
+    let csvArray = [];
 
     // select pivot
     const pivotAns = await inquirer.prompt([{
@@ -91,29 +92,6 @@ async function jsonToCsv() {
         fs.writeFileSync(`export/translate.csv`, csv);
         console.log('complete.');
     });
-
-    function handle(obj, parentKey, lang) {
-        for (const key in obj) {
-            if (typeof obj[key] == 'object') {
-                handle(obj[key], `${parentKey}.${key}`, lang);
-            } else {
-                let arr = { key: `${parentKey}.${key}` };
-                arr[lang] = obj[key];
-                csvArray.push(arr);
-            }
-        }
-    }
-
-    function fillInOtherLang(obj, parentKey, lang) {
-        for (const key in obj) {
-            if (typeof obj[key] == 'object') {
-                fillInOtherLang(obj[key], `${parentKey}.${key}`, lang);
-            } else {
-                const index = csvArray.findIndex(item => item.key == `${parentKey}.${key}`);
-                csvArray[index][lang] = obj[key];
-            }
-        }
-    }
 }
 
 function csvToJson() {
@@ -138,7 +116,6 @@ function csvToJson() {
             }
             json[lang] = {};
 
-            // handle
             for (const item of data) {
                 generatorObj(item.key, lang, item[lang])
             }
@@ -147,24 +124,4 @@ function csvToJson() {
         }
         console.log('complete.');
     });
-
-    function generatorObj(keypath, lang, value) {
-        const keyArray = keypath.split('.');
-        const length = keyArray.length;
-        create(json[lang], keyArray[0], 0);
-
-        function create(obj, key, index) {
-            if (index >= length - 1) {
-                obj[key] = value;
-                return;
-            }
-
-            if (typeof obj[key] === 'undefined') {
-                obj[key] = {};
-            }
-
-            index++;
-            create(obj[key], keyArray[index], index);
-        }
-    }
 }
