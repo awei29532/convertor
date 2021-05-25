@@ -4,15 +4,11 @@
   "description": "",
   "main": "convertor.js",
   "dependencies": {
-    "csvtojson": "^2.0.10",
     "inquirer": "^8.1.0",
-    "json-2-csv": "^3.13.0",
-    "minimist": "^1.2.5"
+    "json-2-csv": "^3.13.0"
   },
   "devDependencies": {},
   "scripts": {
-    "json-to-csv": "node convertor.js --type=json-to-csv",
-    "csv-to-json": "node convertor.js --type=csv-to-json",
     "convertor": "node convertor.js"
   },
   "author": "",

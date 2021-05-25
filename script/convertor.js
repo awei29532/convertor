@@ -1,64 +1,72 @@
 const inquirer = require('inquirer');
+const converter = require('json-2-csv');
 const fs = require('fs');
+const path = require('path');
+
 let files = fs.readdirSync('src');
-let type = '';
 const TYPE_JSON_TO_CSV = 'json to csv';
 const TYPE_CSV_TO_JSON = 'csv to json';
 
-init();
+inquirer.prompt([
+    {
+        type: 'list',
+        name: 'type',
+        message: 'choose a type.',
+        choices: [TYPE_JSON_TO_CSV, TYPE_CSV_TO_JSON],
+    }
+]).then(answers => {
+    switch (answers.type) {
+        case TYPE_JSON_TO_CSV:
+            jsonToCsv();
+            break;
+        case TYPE_CSV_TO_JSON:
+            csvToJson();
+            break;
+    }
+});
 
-function init() {
-    inquirer.prompt([
-        {
-            type: 'list',
-            name: 'type',
-            message: 'choose a type.',
-            choices: [TYPE_JSON_TO_CSV, TYPE_CSV_TO_JSON],
-        }
-    ]).then(answers => {
-        switch (answers.type) {
-            case TYPE_JSON_TO_CSV:
-                jsonToCsv();
-                break;
-            case TYPE_CSV_TO_JSON:
-                console.log('ing...')
-                // csvToJson();
-                break;
-        }
-    });
-}
-
-function jsonToCsv() {
-    const converter = require('json-2-csv');
-    files = files.filter(file => file.indexOf('.json') != -1);
+async function jsonToCsv() {
     let csvArray = [];
+    files = files.filter(file => file.indexOf('.json') != -1);
+    if (!files.length) {
+        console.log('There is no json file.');
+        return;
+    }
 
     // select pivot
-    inquirer.prompt([{
+    const pivotAns = await inquirer.prompt([{
         type: 'list',
         name: 'pivot',
         message: 'choose pivot.',
         choices: files,
-    }]).then(a => {
-        let jsonFile = JSON.parse(fs.readFileSync(`src/${a.pivot}`));
-        files = files.filter(file => file != a.pivot);
-        pivotLang = a.pivot.split('.')[0];
+    }]);
 
-        for (const key in jsonFile) {
-            if (typeof jsonFile[key] == 'object') {
-                handle(jsonFile[key], key, pivotLang);
-            } else {
-                let array = { key };
-                array[pivotLang] = jsonFile[key];
-                csvArray.push(array);
-            }
+    let jsonFile = JSON.parse(fs.readFileSync(`src/${pivotAns.pivot}`));
+    files = files.filter(file => file != pivotAns.pivot);
+    const pivotLang = path.basename(`src/${pivotAns.pivot}`, '.json');
+
+    for (const key in jsonFile) {
+        if (typeof jsonFile[key] == 'object') {
+            handle(jsonFile[key], key, pivotLang);
+        } else {
+            let array = { key };
+            array[pivotLang] = jsonFile[key];
+            csvArray.push(array);
         }
-    });
+    }
 
-    // other langs
+    // choose other langs
+    const langAns = await inquirer.prompt([{
+        type: 'checkbox',
+        name: 'files',
+        message: 'Choose the files you want to transform.',
+        choices: files
+    }]);
+    files = langAns.files;
+
     files.forEach(file => {
         let jsonFile = JSON.parse(fs.readFileSync(`src/${file}`));
-        const lang = file.split('.')[0];
+        const lang = path.basename(`src/${file}`, '.json');
 
         for (const key in jsonFile) {
             if (typeof jsonFile[key] == 'object') {
@@ -75,12 +83,13 @@ function jsonToCsv() {
         });
     });
 
-    // convert JSON array to CSV string
+    // convert json to csv
     converter.json2csv(csvArray, (err, csv) => {
         if (err) {
             throw err;
         }
         fs.writeFileSync(`export/translate.csv`, csv);
+        console.log('complete.');
     });
 
     function handle(obj, parentKey, lang) {
@@ -108,31 +117,36 @@ function jsonToCsv() {
 }
 
 function csvToJson() {
-    const CSVToJSON = require('csvtojson');
     let json = {};
+    let csvFile = files.filter(file => file.indexOf('.csv') != -1);
+    if (!csvFile.length) {
+        console.log('file translate.csv is not exists.');
+        return;
+    }
+    csvFile = fs.readFileSync(`src/${csvFile}`, 'utf-8');
 
-    // convert csv file to JSON array
-    CSVToJSON().fromFile(`${src}translate.csv`)
-        .then(data => {
+    // convert csv to json
+    converter.csv2json(csvFile, (err, data) => {
+        if (err) {
+            throw err;
+        }
 
-            // lang
-            for (const lang in data[0]) {
-                if (lang == 'key') {
-                    continue;
-                }
-                json[lang] = {};
+        // lang
+        for (const lang in data[0]) {
+            if (lang == 'key') {
+                continue;
+            }
+            json[lang] = {};
 
-                // handle
-                for (const item of data) {
-                    generatorObj(item.key, lang, item[lang])
-                }
-
-                fs.writeFileSync(`${output}${lang}.json`, JSON.stringify(json[lang]));
+            // handle
+            for (const item of data) {
+                generatorObj(item.key, lang, item[lang])
             }
 
-        }).catch(err => {
-            console.log(err);
-        });
+            fs.writeFileSync(`export/${lang}.json`, JSON.stringify(json[lang]));
+        }
+        console.log('complete.');
+    });
 
     function generatorObj(keypath, lang, value) {
         const keyArray = keypath.split('.');
