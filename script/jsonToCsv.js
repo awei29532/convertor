@@ -1,27 +1,22 @@
-function handle(obj, parentKey, lang) {
-    for (const key in obj) {
-        if (typeof obj[key] == 'object') {
-            handle(obj[key], `${parentKey}.${key}`, lang);
-        } else {
-            let arr = { key: `${parentKey}.${key}` };
-            arr[lang] = obj[key];
-            csvArray.push(arr);
-        }
-    }
-}
+function handle(srcJson, exportCsv, handleLang, parentKey = null) {
+    for (const key in srcJson) {
+        mixKey = parentKey ? `${parentKey}.${key}` : key;
 
-function fillInOtherLang(obj, parentKey, lang) {
-    for (const key in obj) {
-        if (typeof obj[key] == 'object') {
-            fillInOtherLang(obj[key], `${parentKey}.${key}`, lang);
+        if (typeof srcJson[key] == 'object') {
+            handle(srcJson[key], exportCsv, handleLang, mixKey);
         } else {
-            const index = csvArray.findIndex(item => item.key == `${parentKey}.${key}`);
-            csvArray[index][lang] = obj[key];
+            const index = exportCsv.findIndex(item => item.key == mixKey);
+            if (!exportCsv[index]) {
+                let obj = { key: mixKey };
+                obj[handleLang] = srcJson[key];
+                exportCsv.push(obj);
+            } else {
+                exportCsv[index][handleLang] = srcJson[key];
+            }
         }
     }
 }
 
 module.exports = {
     handle,
-    fillInOtherLang,
 };

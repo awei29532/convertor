@@ -46,15 +46,7 @@ async function jsonToCsv() {
     files = files.filter(file => file != pivotAns.pivot);
     const pivotLang = path.basename(`src/${pivotAns.pivot}`, '.json');
 
-    for (const key in jsonFile) {
-        if (typeof jsonFile[key] == 'object') {
-            handle(jsonFile[key], key, pivotLang);
-        } else {
-            let array = { key };
-            array[pivotLang] = jsonFile[key];
-            csvArray.push(array);
-        }
-    }
+    jsonToCsv.handle(jsonFile, csvArray, pivotLang);
 
     // choose other langs
     const langAns = await inquirer.prompt([{
@@ -69,14 +61,7 @@ async function jsonToCsv() {
         let jsonFile = JSON.parse(fs.readFileSync(`src/${file}`));
         const lang = path.basename(`src/${file}`, '.json');
 
-        for (const key in jsonFile) {
-            if (typeof jsonFile[key] == 'object') {
-                fillInOtherLang(jsonFile[key], key, lang);
-            } else {
-                const index = csvArray.findIndex(item => item.key == key);
-                csvArray[index][lang] = jsonFile[key];
-            }
-        }
+        jsonToCsv.handle(jsonFile, csvArray, lang);
 
         // 缺少的key補上空字串
         csvArray.filter(o => !o[lang]).forEach(item => {
@@ -90,38 +75,23 @@ async function jsonToCsv() {
             throw err;
         }
         fs.writeFileSync(`export/translate.csv`, csv);
-        console.log('complete.');
+        console.log('Convert complete.');
     });
 }
 
-function csvToJson() {
+async function csvToJson() {
+    const csvToJson = require('./CsvToJson');
     let json = {};
     let csvFile = files.filter(file => file.indexOf('.csv') != -1);
     if (!csvFile.length) {
-        console.log('file translate.csv is not exists.');
+        console.log('file translate.csv is not exists!');
         return;
     }
     csvFile = fs.readFileSync(`src/${csvFile}`, 'utf-8');
+    await csvToJson.handle(csvFile, json);
 
-    // convert csv to json
-    converter.csv2json(csvFile, (err, data) => {
-        if (err) {
-            throw err;
-        }
-
-        // lang
-        for (const lang in data[0]) {
-            if (lang == 'key') {
-                continue;
-            }
-            json[lang] = {};
-
-            for (const item of data) {
-                generatorObj(item.key, lang, item[lang])
-            }
-
-            fs.writeFileSync(`export/${lang}.json`, JSON.stringify(json[lang]));
-        }
-        console.log('complete.');
-    });
+    for (const lang in json) {
+        fs.writeFileSync(`export/${lang}.json`, JSON.stringify(json[lang]));
+    }
+    console.log('Convert complete.');
 }
