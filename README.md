@@ -12,14 +12,6 @@ Vue、Angular i18n 語系 json 檔案轉換成 csv 檔案，或反向轉換。
 * json to csv
     1. `choose pivot.` 選擇要當基底的語系檔。
     1. `Choose the files you want to transform.` 選擇要轉換的語系。
-* csv to json
-    * csv檔案內容格式須符合以下圖示
-
-    |key|zh-Hant|en|
-    | ------------ | ------------ | ------------ |
-    |index|首頁|home page|
-    |login.button|登入|login|
-
 
 ### Export
 轉換完成的檔案會輸出到`export`資料夾。
@@ -27,3 +19,9 @@ Vue、Angular i18n 語系 json 檔案轉換成 csv 檔案，或反向轉換。
 ### Notice
 * 如執行`json to csv`，json 檔名需為語系名稱，如:`zh-Hant.json`、`en.json`。
 * 如執行`csv to json`，csv 檔名需為`translate.csv`。
+* csv檔案內容格式須符合以下圖示
+
+|key|zh-Hant|en|
+| ------------ | ------------ | ------------ |
+|index|首頁|home page|
+|login.button|登入|login|
