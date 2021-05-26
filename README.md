@@ -1,11 +1,11 @@
 ### Descreption
-Vue、Angular i18n 語系 json 檔案轉換成csv檔案，或反向轉換。
+Vue、Angular i18n 語系 json 檔案轉換成 csv 檔案，或反向轉換。
 
 ### Install
 `npm i ` 安裝相依套件。
 
 ### Use
-1. 將要轉換的json檔或csv檔放在src資料夾。
+1. 將要轉換的 json 檔或 csv 檔放在`resource`資料夾。
 1. `npm run convertor` 開始執行。
 1. 按照cmd畫面上選擇要執行的動作，`json to csv` 或 `csv to json`。
 
@@ -22,4 +22,4 @@ Vue、Angular i18n 語系 json 檔案轉換成csv檔案，或反向轉換。
 
 
 ### export
-轉換完成的檔案會輸出到export資料夾。
+轉換完成的檔案會輸出到`export`資料夾。
