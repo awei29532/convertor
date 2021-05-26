@@ -9,7 +9,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "convertor": "node script/convertor.js"
+    "convertor": "node index.js"
   },
   "author": "",
   "license": "ISC"

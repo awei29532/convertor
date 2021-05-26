@@ -1,4 +1,22 @@
 const converter = require('json-2-csv');
+const fs = require('fs');
+let files = fs.readdirSync('resource');
+
+async function init() {
+    let json = {};
+    let csvFile = files.filter(file => file.indexOf('.csv') != -1);
+    if (!csvFile.length) {
+        console.log('file translate.csv is not exists!');
+        return;
+    }
+    csvFile = fs.readFileSync(`resource/${csvFile}`, 'utf-8');
+    await handle(csvFile, json);
+
+    for (const lang in json) {
+        fs.writeFileSync(`export/${lang}.json`, JSON.stringify(json[lang]));
+    }
+    console.log('Convert complete.');
+}
 
 async function handle(csvString, exportJson) {
     const csvArray = await converter.csv2jsonAsync(csvString);
@@ -41,5 +59,5 @@ function generatorObj(exportJson, keypath, lang, value) {
 }
 
 module.exports = {
-    handle,
+    init,
 };
