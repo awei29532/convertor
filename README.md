@@ -21,5 +21,9 @@ Vue、Angular i18n 語系 json 檔案轉換成 csv 檔案，或反向轉換。
     |login.button|登入|login|
 
 
-### export
+### Export
 轉換完成的檔案會輸出到`export`資料夾。
+
+### Notice
+* json 檔名為語系名稱，如:`zh-Hant.json`、`en.json`。
+* csv 檔名為`translate.csv`。
