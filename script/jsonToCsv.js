@@ -24,7 +24,7 @@ async function init() {
     files = files.filter(file => file != pivotAns.pivot);
     const pivotLang = path.basename(`resource/${pivotAns.pivot}`, '.json');
 
-    handle(jsonFile, csvArray, pivotLang);
+    handle(jsonFile, csvArray, pivotLang, null, true);
 
     // choose other langs
     const langAns = await inquirer.prompt([{
@@ -57,15 +57,17 @@ async function init() {
     });
 }
 
-function handle(srcJson, exportCsv, handleLang, parentKey = null) {
+function handle(srcJson, exportCsv, handleLang, parentKey = null, pivotMode = false) {
     for (const key in srcJson) {
         mixKey = parentKey ? `${parentKey}.${key}` : key;
 
         if (typeof srcJson[key] == 'object') {
-            handle(srcJson[key], exportCsv, handleLang, mixKey);
+            handle(srcJson[key], exportCsv, handleLang, mixKey, pivotMode);
         } else {
             const index = exportCsv.findIndex(item => item.key == mixKey);
-            if (!exportCsv[index]) {
+            if (!exportCsv[index] && !pivotMode) {
+                continue;
+            } else if (!exportCsv[index]) {
                 let obj = { key: mixKey };
                 obj[handleLang] = srcJson[key];
                 exportCsv.push(obj);
