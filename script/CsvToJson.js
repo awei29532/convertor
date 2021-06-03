@@ -19,7 +19,7 @@ async function init() {
 }
 
 async function handle(csvString, exportJson) {
-    const csvArray = await converter.csv2jsonAsync(csvString);
+    const csvArray = await converter.csv2jsonAsync(csvString.replace(/\r\n/g, "\n"));
 
     if (!csvArray[0].key) {
         console.log('Wrong format!');
